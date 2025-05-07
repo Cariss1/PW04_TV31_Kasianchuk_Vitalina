@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор струмів КЗ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .calculator-section {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e8f4fc;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #eee;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #f9f9f9;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Калькулятор струмів короткого замикання</h1>
+    <p>Розрахунки для систем електропостачання 10(6) кВ</p>
+
+    <div class="tabs">
+        <div class="tab active" onclick="openTab('cable')">Вибір кабелів</div>
+        <div class="tab" onclick="openTab('short-circuit')">Струм КЗ на шинах</div>
+        <div class="tab" onclick="openTab('hpmes')">Режими ХПнЕМ</div>
+    </div>
+
+    <!-- Калькулятор вибору кабелів -->
+    <div id="cable" class="tab-content active">
+        <div class="calculator-section">
+            <h2>1. Вибір кабелів для підстанції 10 кВ</h2>
+            <p>Розрахунок за економічною густиною струму та термічною стійкістю</p>
+            
+            <div class="input-group">
+                <label for="power">Потужність навантаження (кВт):</label>
+                <input type="number" id="power" placeholder="Наприклад, 1500">
+            </div>
+            
+            <div class="input-group">
+                <label for="material">Матеріал жили:</label>
+                <select id="material">
+                    <option value="cu">Мідь</option>
+                    <option value="al">Алюміній</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="hours">Час використання максимуму навантаження (год/рік):</label>
+                <select id="hours">
+                    <option value="3000">Менше 3000</option>
+                    <option value="4000">3000-5000</option>
+                    <option value="6000">Більше 5000</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="ik">Струм КЗ (кА):</label>
+                <input type="number" id="ik" placeholder="Для перевірки термічної стійкості">
+            </div>
+            
+            <button onclick="calculateCable()">Розрахувати</button>
+            
+            <div id="result1" class="result" style="display: none;">
+                <h3>Результати розрахунку:</h3>
+                <p id="cable-result"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Калькулятор струму КЗ на шинах -->
+    <div id="short-circuit" class="tab-content">
+        <div class="calculator-section">
+            <h2>2. Розрахунок струмів КЗ на шинах 10 кВ</h2>
+            <p>Визначення струмів короткого замикання для перевірки обладнання</p>
+            
+            <div class="input-group">
+                <label for="Sk">Потужність КЗ (МВА):</label>
+                <input type="number" id="Sk" placeholder="Наприклад, 200">
+            </div>
+            
+            <div class="input-group">
+                <label for="Unom">Номінальна напруга (кВ):</label>
+                <input type="number" id="Unom" value="10.5">
+            </div>
+            
+            <div class="input-group">
+                <label for="Xt">Опір трансформатора (Ом):</label>
+                <input type="number" id="Xt" placeholder="Наприклад, 1.84">
+            </div>
+            
+            <button onclick="calculateShortCircuit()">Розрахувати</button>
+            
+            <div id="result2" class="result" style="display: none;">
+                <h3>Результати розрахунку:</h3>
+                <p id="short-circuit-result"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Калькулятор для ХПнЕМ -->
+    <div id="hpmes" class="tab-content">
+        <div class="calculator-section">
+            <h2>3. Розрахунок струмів КЗ для ХПнЕМ</h2>
+            <p>Визначення струмів короткого замикання для різних режимів роботи</p>
+            
+            <h3>Нормальний режим</h3>
+            <div class="input-group">
+                <label for="R_normal">Опір R (Ом):</label>
+                <input type="number" id="R_normal" placeholder="Наприклад, 10.65">
+            </div>
+            
+            <div class="input-group">
+                <label for="X_normal">Опір X (Ом):</label>
+                <input type="number" id="X_normal" placeholder="Наприклад, 24.02">
+            </div>
+            
+            <h3>Мінімальний режим</h3>
+            <div class="input-group">
+                <label for="R_minimal">Опір R (Ом):</label>
+                <input type="number" id="R_minimal" placeholder="Наприклад, 34.88">
+            </div>
+            
+            <div class="input-group">
+                <label for="X_minimal">Опір X (Ом):</label>
+                <input type="number" id="X_minimal" placeholder="Наприклад, 65.68">
+            </div>
+            
+            <h3>Аварійний режим</h3>
+            <div class="input-group">
+                <label for="R_emergency">Опір R (Ом):</label>
+                <input type="number" id="R_emergency" placeholder="Введіть значення">
+            </div>
+            
+            <div class="input-group">
+                <label for="X_emergency">Опір X (Ом):</label>
+                <input type="number" id="X_emergency" placeholder="Введіть значення">
+            </div>
+            
+            <button onclick="calculateHPMEShortCircuit()">Розрахувати</button>
+            
+            <div id="result3" class="result" style="display: none;">
+                <h3>Результати розрахунку:</h3>
+                <div id="hpmes-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Функція для переключення вкладок
+        function openTab(tabName) {
+            const tabs = document.getElementsByClassName('tab');
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // 1. Функція для вибору кабелів
+        function calculateCable() {
+            const power = parseFloat(document.getElementById('power').value);
+            const material = document.getElementById('material').value;
+            const hours = parseInt(document.getElementById('hours').value);
+            const ik = parseFloat(document.getElementById('ik').value) || 0;
+            
+            if (!power) {
+                alert('Будь ласка, введіть потужність навантаження');
+                return;
+            }
+            
+            // Розрахунковий струм
+            const voltage = 10; // кВ
+            const I = (power * 1000) / (Math.sqrt(3) * voltage);
+            
+            // Економічна густина струму (з таблиці)
+            let j_ek;
+            if (material === 'cu') {
+                if (hours > 5000) j_ek = 2.0;
+                else if (hours > 3000) j_ek = 2.5;
+                else j_ek = 3.0;
+            } else { // Al
+                if (hours > 5000) j_ek = 1.2;
+                else if (hours > 3000) j_ek = 1.4;
+                else j_ek = 1.6;
+            }
+            
+            // Економічний переріз
+            const S_ek = I / j_ek;
+            
+            // Перевірка на термічну стійкість (якщо введено струм КЗ)
+            let thermalCheck = '';
+            if (ik > 0) {
+                const C = material === 'cu' ? 165 : 95; // Константи для міді/алюмінію
+                const t_therm = 1; // Час дії КЗ (сек)
+                const S_therm = (ik * 1000 * Math.sqrt(t_therm)) / C;
+                
+                // Рекомендований переріз - максимальний з двох
+                const recommendedSection = Math.max(S_ek, S_therm);
+                
+                thermalCheck = `
+                    <p><strong>Перевірка на термічну стійкість:</strong></p>
+                    <p>Мінімальний переріз за термічною стійкістю: ${S_therm.toFixed(2)} мм²</p>
+                    <p><strong>Рекомендований переріз кабеля: ${Math.ceil(recommendedSection)} мм²</strong></p>
+                    <p>Можливі варіанти: ААБ ${Math.ceil(recommendedSection)} або ААШв ${Math.ceil(recommendedSection)}</p>
+                `;
+            } else {
+                thermalCheck = `
+                    <p><strong>Рекомендований переріз за економічною густиною: ${Math.ceil(S_ek)} мм²</strong></p>
+                    <p>Для точнішого розрахунку введіть струм КЗ для перевірки термічної стійкості</p>
+                `;
+            }
+            
+            // Вивід результатів
+            document.getElementById('cable-result').innerHTML = `
+                <p><strong>Розрахунковий струм:</strong> ${I.toFixed(2)} А</p>
+                <p><strong>Економічна густина струму:</strong> ${j_ek} А/мм²</p>
+                ${thermalCheck}
+            `;
+            
+            document.getElementById('result1').style.display = 'block';
+        }
+
+        // 2. Функція для розрахунку струму КЗ на шинах
+        function calculateShortCircuit() {
+            const Sk = parseFloat(document.getElementById('Sk').value);
+            const Unom = parseFloat(document.getElementById('Unom').value);
+            const Xt = parseFloat(document.getElementById('Xt').value);
+            
+            if (!Sk || !Unom || !Xt) {
+                alert('Будь ласка, заповніть всі поля');
+                return;
+            }
+            
+            // Опір системи
+            const Xc = Math.pow(Unom, 2) / Sk;
+            
+            // Сумарний опір
+            const Xsum = Xc + Xt;
+            
+            // Струм трифазного КЗ
+            const Isc = (Unom * 1000) / (Math.sqrt(3) * Xsum); // у кА
+            
+            // Ударний струм (приблизно)
+            const k = 1.8; // Для віддалених КЗ
+            const i_ud = k * Math.sqrt(2) * Isc;
+            
+            // Вивід результатів
+            document.getElementById('short-circuit-result').innerHTML = `
+                <p><strong>Опір системи (Xc):</strong> ${Xc.toFixed(4)} Ом</p>
+                <p><strong>Сумарний опір (XΣ):</strong> ${Xsum.toFixed(4)} Ом</p>
+                <p><strong>Початкове значення періодичної складової струму КЗ:</strong> ${Isc.toFixed(2)} кА</p>
+                <p><strong>Ударний струм КЗ:</strong> ${i_ud.toFixed(2)} кА</p>
+                <p><strong>Для перевірки обладнання:</strong></p>
+                <ul>
+                    <li>Вимикачі повинні мати відключаючу здатність ≥ ${Isc.toFixed(2)} кА</li>
+                    <li>Динамічна стійкість ≥ ${i_ud.toFixed(2)} кА</li>
+                </ul>
+            `;
+            
+            document.getElementById('result2').style.display = 'block';
+        }
+
+        // 3. Функція для розрахунку режимів ХПнЕМ
+        function calculateHPMEShortCircuit() {
+            const modes = [
+                { name: "Нормальний", R: "R_normal", X: "X_normal" },
+                { name: "Мінімальний", R: "R_minimal", X: "X_minimal" },
+                { name: "Аварійний", R: "R_emergency", X: "X_emergency" }
+            ];
+            
+            let resultsHTML = '';
+            const Unom = 10.5; // кВ
+            
+            modes.forEach(mode => {
+                const R = parseFloat(document.getElementById(mode.R).value);
+                const X = parseFloat(document.getElementById(mode.X).value);
+                
+                if (isNaN(R) || isNaN(X)) {
+                    resultsHTML += `<p><strong>${mode.name} режим:</strong> Не вказано параметри</p>`;
+                    return;
+                }
+                
+                // Повний опір
+                const Z = Math.sqrt(R * R + X * X);
+                
+                // Струм КЗ
+                const Isc = (Unom * 1000) / (Math.sqrt(3) * Z); // у кА
+                
+                // Додаємо до результатів
+                resultsHTML += `
+                    <div style="margin-bottom: 20px;">
+                        <h4>${mode.name} режим</h4>
+                        <p><strong>Повний опір (Z):</strong> ${Z.toFixed(2)} Ом</p>
+                        <p><strong>Струм трифазного КЗ:</strong> ${Isc.toFixed(2)} кА</p>
+                        <p><strong>Ударний струм (приблизно):</strong> ${(1.8 * Math.sqrt(2) * Isc).toFixed(2)} кА</p>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('hpmes-result').innerHTML = resultsHTML;
+            document.getElementById('result3').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
